@@ -1,4 +1,5 @@
-const router = require('express').Router();
+const express = require("express");
+const router = express.Router();
 
 const users = [
     { id: 1, nama: "Andi Saputra", asal_kota: "Jakarta" },
@@ -22,10 +23,8 @@ const users = [
     { id: 19, nama: "Siska Amelia", asal_kota: "Bogor" },
     { id: 20, nama: "Teguh Prakoso", asal_kota: "Cirebon" }
   ];
-  
 
-
-router.get('/users', (req, res) => {
+  router.get('/', (req, res) => {
     res.status(200).json({
         status: "Successfully",
         messege: "berhasil mengambil data",
@@ -33,7 +32,7 @@ router.get('/users', (req, res) => {
     })
 })
 
-router.post('/users', (req, res) => {
+router.post('/', (req, res) => {
     const nama = req.body.nama;
     const asal_kota = req.body.asal_kota;
     users.push({id: users.length + 1, nama: nama, asal_kota: asal_kota});
@@ -43,7 +42,25 @@ router.post('/users', (req, res) => {
         data: users
     })
 })
-router.get('/users/:id', (req, res) => {
+router.get('/:id', (req, res) => {
+    const { id } = req.params;
+    const user = users.find((user) => user.id === Number(id));
+    if(!user) {
+        return res.status(404).json({
+            status: "gagal",
+            messege: "user tidak ditemukan"
+        })
+    }
+    const { nama } = req.body;
+    user.nama = nama;
+
+    res.status(200).json({
+        status: "berhasil",
+        messege: "data user berhasil diambil",
+        data: user
+    });
+});
+router.put('/:id', (req, res) => {
     const { id } = req.params;
     const user = users.find((user) => user.id === Number(id));
     if(!user) {
@@ -61,5 +78,22 @@ router.get('/users/:id', (req, res) => {
         data: user
     });
 });
+router.delete('/:id', (req, res) => {
+    const { id } = req.params;
+    const user = users.find((user) => user.id === Number(id));
+    if(!user) {
+        return res.status(404).json({
+            status: "error",
+            messege: "User not found"
+        })
+    }
+    const index = users.indexOf(user);
+    users.splice(index, 1);
+    res.status(200).json({
+        status: "success",
+        messege: "Successfully delete user",
+        dataL: id
+    });
+})
 
 module.exports= router;
