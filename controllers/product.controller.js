@@ -1,17 +1,7 @@
-const products = [
-    { id: 1, nama: "Indomie", harga: 3000 },
-    { id: 2, nama: "Susu", harga: 5000 },
-    { id: 3, nama: "Kopi", harga: 10000 },
-    { id: 4, nama: "Gula", harga: 2000 },
-    { id: 5, nama: "Teh", harga: 4000 },
-    { id: 6, nama: "Mie Sedap", harga: 2500 },
-    { id: 7, nama: "Kopi Luwak", harga: 15000 },
-    { id: 8, nama: "Sarden", harga: 6000 },
-    { id: 9, nama: "Kentang", harga: 8000 },
-    { id: 10, nama: "Beras", harga: 10000 },
-];
+const {Product} = require('../models/');
 
-const getAllProducts = (req, res) => {
+const getAllProducts = async (req, res) => {
+    const products = await Product.findAll();
     res.status(200).json({
         status: "Successfully",
         messege: "berhasil mengambil data",
@@ -20,30 +10,37 @@ const getAllProducts = (req, res) => {
 }
 
 const createProduct = async (req, res ) => {
-    const nama = req.body.nama;
-    const harga = req.body.harga;
-    products.push({id: products.length + 1, nama: nama, harga: harga});
-    res.status(201).json({
-        status: "berhasil menambahkan data",
+    const { name, price, quantity } = req.body.nama;
+    if (!name || !price || !quantity) {
+        res.status(401).json({
+            status: "error",
+            messege: "tidak berhasil menambahkan data",
+            data: products
+        });
+    }
+    const product = await Product.create({
+        name,
+        price,
+        quantity
+    });
+    res.status(200).json({
+        status: "success",
         messege: "berhasil menambahkan data",
-        data: products
+        data: product
     });
 }
 
 const getProductById = async (req, res) => {
     const { id } = req.params;
-        const product = products.find((product) => product.id === Number(id));
+    const product = await Product.findbyPk(id);
         if(!product) {
             return res.status(404).json({
-                status: "gagal",
+                status: "error",
                 messege: "product tidak ditemukan"
             })
         }
-        const { nama } = req.body;
-        product.nama = nama;
-
         res.status(200).json({
-            status: "berhasil",
+            status: "success",
             messege: "data product berhasil diambil",
             data: product
         });
@@ -51,18 +48,28 @@ const getProductById = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     const { id } = req.params;
-    const product = products.find((product) => product.id === Number(id));
-    if(!product) {
-        return res.status(404).json({
-            status: "gagal",
-            messege: "product tidak ditemukan"
+    const {name, price, quantity } = req.body;
+    if(!name || !price || !quantity) {
+        return res.status(401).json({
+            status: "error",
+            messege: "tidak berhasil mengubah data",
         });
     }
-        const { nama } = req.body;
-        product.nama = nama;
 
+    const product = await Product.findbyPk(id);
+        if(!product) {
+            return res.status(404).json({
+                status: "error",
+                messege: "product tidak ditemukan"
+            })
+        }
+        
+        product.name = name;
+        product.price = price;
+        product.quantity = quantity;
+        await product.save();
         res.status(200).json({
-            status: "berhasil",
+            status: "success",
             messege: "data product berhasil diubah",
             data: product
         });
@@ -70,19 +77,18 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params;
-        const product = products.find((product) => product.id === Number(id));
+    const product = await Product.findbyPk(id);
         if(!product) {
             return res.status(404).json({
                 status: "error",
-                messege: "Product not found"
+                messege: "product tidak ditemukan"
             })
         }
-        const index = products.indexOf(product);
-        products.splice(index, 1);
+        await product.destroy();
         res.status(200).json({
             status: "success",
-            messege: "Successfully delete product",
-            dataL: id
+            messege: "data product berhasil dihapus",
+            data: product
         });
 }
 
