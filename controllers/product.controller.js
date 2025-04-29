@@ -10,18 +10,21 @@ const getAllProducts = async (req, res) => {
 }
 
 const createProduct = async (req, res ) => {
-    const { name, price, quantity } = req.body.nama;
-    if (!name || !price || !quantity) {
+    const { name, code, price, quantity } = req.body;
+    const images = req.file ? req.file.path : null;
+    if (!name || !code || !price || !quantity || !images ) {
         res.status(401).json({
             status: "error",
-            messege: "tidak berhasil menambahkan data",
+            messege: "tidak berhasil menambahkan data atau gambar",
             data: products
         });
     }
     const product = await Product.create({
         name,
+        code,
         price,
-        quantity
+        quantity,
+        images
     });
     res.status(200).json({
         status: "success",
@@ -32,7 +35,7 @@ const createProduct = async (req, res ) => {
 
 const getProductById = async (req, res) => {
     const { id } = req.params;
-    const product = await Product.findbyPk(id);
+    const product = await Product.findByPk(id);
         if(!product) {
             return res.status(404).json({
                 status: "error",
@@ -48,15 +51,16 @@ const getProductById = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     const { id } = req.params;
-    const {name, price, quantity } = req.body;
-    if(!name || !price || !quantity) {
+    const {name, code, price, quantity } = req.body;
+    const images = req.file ? req.file.path : null;
+    if(!name || !code || !price || !quantity || !images) {
         return res.status(401).json({
             status: "error",
             messege: "tidak berhasil mengubah data",
         });
     }
 
-    const product = await Product.findbyPk(id);
+    const product = await Product.findByPk(id);
         if(!product) {
             return res.status(404).json({
                 status: "error",
@@ -64,9 +68,16 @@ const updateProduct = async (req, res) => {
             })
         }
         
+        if(req.file ){
+            product.images = images
+        }
+
         product.name = name;
+        product.code = code;
         product.price = price;
         product.quantity = quantity;
+        product.images = images;
+
         await product.save();
         res.status(200).json({
             status: "success",
@@ -74,6 +85,28 @@ const updateProduct = async (req, res) => {
             data: product
         });
 }
+const uploadProductImage = async (req, res) => {
+    const { id } = req.params;
+    const imagesPath = req.file.path;
+    const product = await Product.findByPk(id);
+        if(!product) {
+            return res.status(404).json({
+                status: "error",
+                messege: "product tidak ditemukan"
+            })
+        }
+
+        await product.update({
+            images: imagesPath
+        });
+        res.status(200).json({
+            status: "success",
+            messege: "data product berhasil diubah",
+            data: product
+        });
+    
+        
+} 
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params;
@@ -97,5 +130,6 @@ module.exports = {
     createProduct,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    uploadProductImage
  };
