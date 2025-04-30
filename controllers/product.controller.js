@@ -10,15 +10,14 @@ const getAllProducts = async (req, res) => {
 }
 
 const createProduct = async (req, res ) => {
-    const { name, code, price, quantity } = req.body;
-    const images = req.file ? req.file.path : null;
-    if (!name || !code || !price || !quantity || !images ) {
-        res.status(401).json({
-            status: "error",
-            messege: "tidak berhasil menambahkan data atau gambar",
-            data: products
-        });
-    }
+   const { name, code, price, quantity } = req.body;
+   const images = req.file ? req.file.path : null;
+   if(!name || !code || !price || !quantity) {
+    return res.status(401).json({
+        status: "error",
+        messege: "tidak berhasil membuat data",
+    });
+   }
     const product = await Product.create({
         name,
         code,
@@ -26,9 +25,9 @@ const createProduct = async (req, res ) => {
         quantity,
         images
     });
-    res.status(200).json({
+    res.status(201).json({
         status: "success",
-        messege: "berhasil menambahkan data",
+        messege: "berhasil membuat data",
         data: product
     });
 }
@@ -42,7 +41,7 @@ const getProductById = async (req, res) => {
                 messege: "product tidak ditemukan"
             })
         }
-        res.status(200).json({
+        res.status(201).json({
             status: "success",
             messege: "data product berhasil diambil",
             data: product
@@ -53,14 +52,16 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const {name, code, price, quantity } = req.body;
     const images = req.file ? req.file.path : null;
-    if(!name || !code || !price || !quantity || !images) {
-        return res.status(401).json({
-            status: "error",
-            messege: "tidak berhasil mengubah data",
-        });
-    }
+
+    // if(!name || !code || !price || !quantity) {
+    //     return res.status(401).json({
+    //         status: "error",
+    //         messege: "tidak berhasil mengubah data",
+    //     });
+    // }
 
     const product = await Product.findByPk(id);
+
         if(!product) {
             return res.status(404).json({
                 status: "error",
@@ -68,15 +69,13 @@ const updateProduct = async (req, res) => {
             })
         }
         
-        if(req.file ){
-            product.images = images
-        }
-
-        product.name = name;
-        product.code = code;
-        product.price = price;
-        product.quantity = quantity;
-        product.images = images;
+        
+        // Update hanya field yang dikirim
+        if (name !== undefined) product.name = name;
+        if (code !== undefined) product.code = code;
+        if (price !== undefined) product.price = parseInt(price);
+        if (quantity !== undefined) product.quantity = parseInt(quantity); 
+        if (req.file !== undefined) product.images = images;
 
         await product.save();
         res.status(200).json({
@@ -110,7 +109,7 @@ const uploadProductImage = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params;
-    const product = await Product.findbyPk(id);
+    const product = await Product.findByPk(id);
         if(!product) {
             return res.status(404).json({
                 status: "error",

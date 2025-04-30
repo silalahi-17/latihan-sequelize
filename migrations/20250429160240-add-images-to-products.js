@@ -5,7 +5,7 @@ module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.addColumn('products', 'images', {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true
     })
   },
 

@@ -7,7 +7,7 @@ const { uploadProductImage } = require("../controllers/product.controller");
 
 
 router.get('/', getAllProducts);
-router.post('/',upload.single('image'), createProduct);
+router.post('/',upload.single('images'), createProduct);
 router.get('/:id', getProductById);
 router.put('/:id',upload.single('images') , updateProduct);
 router.patch('/:id/', upload.single('images'), uploadProductImage);
